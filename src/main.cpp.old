@@ -1,3 +1,8 @@
+/*
+#define PIN_TX D2
+#define PIN_RX D1
+*/
+
 #include "Arduino.h"
 #include <SoftwareSerial.h>  // https://github.com/PaulStoffregen/SoftwareSerial
 #include <PubSubClient.h>  
@@ -11,17 +16,17 @@ unsigned long previousMillis_RS485_auslesen = 0; // Windstärke prüfen
 unsigned long interval_RS485_auslesen = 1500; 
 
 /////////////////////////////////////////////////////////////////////////// RS485 - Variablen
-#define RX        D2    //Serial Receive pin
-#define TX        D3    //Serial Transmit pin
+#define RX        D1    //Serial Receive pin
+#define TX        D2    //Serial Transmit pin
 #define RTS_pin   D0    //RS485 Direction control
 #define RS485Transmit    HIGH
 #define RS485Receive     LOW
 SoftwareSerial RS485Serial(RX, TX);
 
 /////////////////////////////////////////////////////////////////////////// Variablen
-const char* kartenID = "Growatt_SPF_5000_mqtt";
+const char* kartenID = "24V_Weihnachten_Lichter";
 
-/////////////////////////////////////////////////////////////////////////// mqtt Client
+///////////////////////////////////////////////////////////////////////////  mqtt Client
 WiFiClient espClient;
 PubSubClient client(espClient);
 char buffer1[10];
@@ -48,17 +53,17 @@ void setup() {
   pinMode(RTS_pin, OUTPUT);  
   
   // Baud Serielle Kommunikation
-  Serial.begin(19200);
+  Serial.begin(115200);
 
   // RS485 Baud
-  RS485Serial.begin(4800);   
+  RS485Serial.begin(9600);   
   delay(500);
 
   // MQTT Broker
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
+  //client.setServer(mqtt_server, 1883);
+  //client.setCallback(callback);
 
-  wifi_setup();
+  //wifi_setup();
 
 }
 
@@ -148,16 +153,17 @@ void RS485_auslesen(){
   byte Wattmeter_buf[8];
   RS485Serial.readBytes(Wattmeter_buf, 8);
 
-  Serial.print("Wattausgabe");
-  Serial.print(" -> ");
-  Serial.print(Wattmeter_buf[5]);
-  Serial.print(" Watt");
-  Serial.println(); 
+
+  Serial.println(Wattmeter_buf[1]);
+    Serial.println(Wattmeter_buf[2]);
+      Serial.println(Wattmeter_buf[3]);
+        Serial.println(Wattmeter_buf[4]);
+
 
   delay(300);
 
-  dtostrf(Wattmeter_buf[5],2, 1, buffer1); 
-  client.publish("Wattmeter/HA/L1", buffer1); 
+  //dtostrf(Wattmeter_buf[5],2, 1, buffer1); 
+  //client.publish("Wattmeter/HA/L1", buffer1); 
 
 
 
@@ -167,11 +173,12 @@ void RS485_auslesen(){
 void loop() {
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ mqtt Checken
+  /*
   if (millis() - previousMillis_mqttCHECK > interval_mqttCHECK) {
       previousMillis_mqttCHECK = millis(); 
       mqtt_connected();
     }    
-
+*/
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ RS485 auslesen
   if (millis() - previousMillis_RS485_auslesen > interval_RS485_auslesen) {
       previousMillis_RS485_auslesen = millis(); 
